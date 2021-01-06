@@ -1,0 +1,63 @@
+Description: The servers related ressources
+Parameters:
+  ProjectName:
+    Type: String
+
+Resources:
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Web server security group
+      SecurityGroupEgress: 
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Webservers security goup
+      VpcId: 
+        Fn::ImportValue: !Sub ${ProjectName}-VPCID
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Web server security group
+      SecurityGroupEgress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Load Balancer security goup
+      VpcId: 
+        Fn::ImportValue: !Sub ${ProjectName}-VPCID
+
+  # ProfileWithRolesForOurApp:
+  #   Type: AWS::IAM::InstanceProfile
+  #   Properties: 
+  #     Roles:
+  #       - UdacityS3ReadOnlyEC2
+
+
+
+        # #!/bin/bash
+        # apt-get update -y
+        # apt-get install unzip awscli -y
+        # apt-get install apache2 -y
+        # systemctl start apache2.service
+        # cd /var/www/html
+        # aws s3 cp s3://udacity-demo-1/udacity.zip .
+        # unzip -o udacity.zip
