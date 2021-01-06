@@ -1,0 +1,26 @@
+[
+    {
+        "ParameterKey": "ProjectName",
+        "ParameterValue": "UdacityProjecCloudFormation"
+    },
+    {
+        "ParameterKey": "VPCCIDR",
+        "ParameterValue": "10.0.0.0/16"
+    },
+    {
+        "ParameterKey": "SubPublicVPCCIDR1",
+        "ParameterValue": "10.0.1.0/24"
+    },
+    {
+        "ParameterKey": "SubPublicVPCCIDR2",
+        "ParameterValue": "10.0.2.0/24"
+    },
+    {
+        "ParameterKey": "SubPrivateVPCCIDR1",
+        "ParameterValue": "10.0.3.0/24"
+    },
+    {
+        "ParameterKey": "SubPrivateVPCCIDR2",
+        "ParameterValue": "10.0.4.0/24"
+    }
+]
