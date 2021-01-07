@@ -126,3 +126,14 @@ Resources:
         ListenerArn: !Ref LBListener
         Priority: 1
 
+  AutoScalingWebServers:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: 
+        - Fn::ImportValue: !Sub ${ProjectName}-PRIV-SUBNETS
+      MaxSize: 8
+      MinSize: 4
+      TargetGroupARNs: 
+        - !Ref WebserverTargetGroup
+      LaunchConfigurationName: !Ref WebAppLaunchConfiguration
+
