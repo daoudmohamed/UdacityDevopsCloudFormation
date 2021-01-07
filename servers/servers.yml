@@ -1,0 +1,139 @@
+Description: The servers related ressources
+Parameters:
+  ProjectName:
+    Type: String
+
+Resources:
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Web server security group
+      SecurityGroupEgress: 
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Webservers security goup
+      VpcId: 
+        Fn::ImportValue: !Sub ${ProjectName}-VPCID
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Web server security group
+      SecurityGroupEgress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: Load Balancer security goup
+      VpcId: 
+        Fn::ImportValue: !Sub ${ProjectName}-VPCID
+
+  ProfileWithRolesS3:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      Roles:
+        - EC2ReadS3File
+
+  WebAppLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update -y
+          apt-get install unzip awscli -y
+          apt-get install apache2 -y
+          systemctl start apache2.service
+          cd /var/www/html
+          aws s3 cp s3://udacity-demo-1/udacity.zip .
+          unzip -o udacity.zip
+      # Ubuntu Server 18.04 LTS (HVM)
+      ImageId: ami-089d839e690b09b28
+      IamInstanceProfile: !Ref ProfileWithRolesS3
+      SecurityGroups:
+        - Ref: WebServerSecurityGroup
+      InstanceType: t2.medium
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdb"
+          Ebs:
+            VolumeSize: '10'
+
+  WebserverTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      Tags: 
+        - Key: Name
+          Value: WebServerTargetGroup
+      UnhealthyThresholdCount: 5
+      VpcId: 
+        Fn::ImportValue: !Sub ${ProjectName}-VPCID
+
+
+  WebserverLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+      - Fn::Select: [ 0, Fn::Split: [ ",", Fn::ImportValue: !Sub "${ProjectName}-PUB-SUBNETS" ] ] 
+      - Fn::Select: [ 1, Fn::Split: [ ",", Fn::ImportValue: !Sub "${ProjectName}-PUB-SUBNETS" ] ] 
+      SecurityGroups:
+      - Ref: LoadBalancerSecurityGroup
+
+  LBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: WebserverTargetGroup
+      LoadBalancerArn:
+        Ref: WebserverLB
+      Port: '80'
+      Protocol: HTTP
+
+  LBListenerRule:
+      Type: AWS::ElasticLoadBalancingV2::ListenerRule
+      Properties:
+        Actions:
+        - Type: forward
+          TargetGroupArn: !Ref 'WebserverTargetGroup'
+        Conditions:
+        - Field: path-pattern
+          Values: [/]
+        ListenerArn: !Ref LBListener
+        Priority: 1
+
+  AutoScalingWebServers:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: 
+        - Fn::ImportValue: !Sub ${ProjectName}-PRIV-SUBNETS
+      MaxSize: 8
+      MinSize: 4
+      TargetGroupARNs: 
+        - !Ref WebserverTargetGroup
+      LaunchConfigurationName: !Ref WebAppLaunchConfiguration
+
