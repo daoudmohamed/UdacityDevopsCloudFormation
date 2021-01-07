@@ -92,3 +92,37 @@ Resources:
       VpcId: 
         Fn::ImportValue: !Sub ${ProjectName}-VPCID
 
+
+  WebserverLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Subnets:
+      - Fn::Select: [ 0, Fn::Split: [ ",", Fn::ImportValue: !Sub "${ProjectName}-PUB-SUBNETS" ] ] 
+      - Fn::Select: [ 1, Fn::Split: [ ",", Fn::ImportValue: !Sub "${ProjectName}-PUB-SUBNETS" ] ] 
+      SecurityGroups:
+      - Ref: LoadBalancerSecurityGroup
+
+  LBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: WebserverTargetGroup
+      LoadBalancerArn:
+        Ref: WebserverLB
+      Port: '80'
+      Protocol: HTTP
+
+  LBListenerRule:
+      Type: AWS::ElasticLoadBalancingV2::ListenerRule
+      Properties:
+        Actions:
+        - Type: forward
+          TargetGroupArn: !Ref 'WebserverTargetGroup'
+        Conditions:
+        - Field: path-pattern
+          Values: [/]
+        ListenerArn: !Ref LBListener
+        Priority: 1
+
