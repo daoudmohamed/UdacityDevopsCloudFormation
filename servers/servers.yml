@@ -137,3 +137,9 @@ Resources:
         - !Ref WebserverTargetGroup
       LaunchConfigurationName: !Ref WebAppLaunchConfiguration
 
+Outputs:
+  LoadBalancerUrl:
+    Description: Load Balancer Url
+    Value: !GetAtt WebserverLB.DNSName
+    Export:
+      Name: !Sub ${ProjectName}-LoadBalancerUrl
