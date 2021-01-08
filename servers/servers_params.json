@@ -2,5 +2,11 @@
     {
         "ParameterKey": "ProjectName",
         "ParameterValue": "UdacityProjecCloudFormation"
+    },{
+        "ParameterKey": "InstanceType",
+        "ParameterValue": "t2.medium"
+    },{
+        "ParameterKey": "ImageId",
+        "ParameterValue": "ami-089d839e690b09b28"
     }
 ]
