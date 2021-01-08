@@ -6,6 +6,15 @@ Parameters:
   ImageId:
     Type: String
     
+  InstanceType:
+    Type: String
+    AllowedValues: 
+      - t2.micro
+      - t2.medium
+      - m1.small
+      - m1.large
+    Description: Server type used in provate subnets.
+
 Resources:
 
   WebServerSecurityGroup:
@@ -72,7 +81,7 @@ Resources:
       IamInstanceProfile: !Ref ProfileWithRolesS3
       SecurityGroups:
         - Ref: WebServerSecurityGroup
-      InstanceType: t2.medium
+      InstanceType: !Ref InstanceType
       BlockDeviceMappings:
         - DeviceName: "/dev/sdb"
           Ebs:
