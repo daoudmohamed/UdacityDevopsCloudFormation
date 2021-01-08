@@ -3,6 +3,9 @@ Parameters:
   ProjectName:
     Type: String
 
+  ImageId:
+    Type: String
+    
 Resources:
 
   WebServerSecurityGroup:
@@ -65,7 +68,7 @@ Resources:
           aws s3 cp s3://udacity-demo-1/udacity.zip .
           unzip -o udacity.zip
       # Ubuntu Server 18.04 LTS (HVM)
-      ImageId: ami-089d839e690b09b28
+      ImageId: !Ref ImageId 
       IamInstanceProfile: !Ref ProfileWithRolesS3
       SecurityGroups:
         - Ref: WebServerSecurityGroup
