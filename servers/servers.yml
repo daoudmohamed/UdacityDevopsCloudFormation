@@ -5,7 +5,7 @@ Parameters:
 
   ImageId:
     Type: String
-    
+
   InstanceType:
     Type: String
     AllowedValues: 
@@ -69,6 +69,7 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
+          exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
           apt-get update -y
           apt-get install unzip awscli -y
           apt-get install apache2 -y
